@@ -3,6 +3,9 @@ import cv2
 from pathlib import Path
 from ultralytics import YOLO
 
+from yolov9 import YOLOv9
+
+
 def get_detector(args):
     weights_path = args.weights
     classes_path = args.classes
@@ -17,8 +20,22 @@ def get_detector(args):
     elif args.video:
         cap = cv2.VideoCapture(source_path)
         w = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
-        h = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))'
-        detector = YOLO(weights_path) # weights in .pt
+        h = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
+        '''detector = YOLOv9(model_path=weights_path,
+                      class_mapping_path=classes_path,
+                      original_size=(w, h),
+                      score_threshold=args.score_threshold,
+                      conf_thresold=args.conf_threshold,
+                      iou_threshold=args.iou_threshold,
+                      device=args.device)'''
+    detector = YOLOv9(model_path=weights_path,
+                      class_mapping_path=classes_path,
+                      original_size=(w, h),
+                      score_threshold=args.score_threshold,
+                      conf_thresold=args.conf_threshold,
+                      iou_threshold=args.iou_threshold,
+                      device=args.device)
+    #detector = YOLO(weights_path) # weights in .pt
     return detector
 
 def predict(chosen_model, img, classes=[], conf = 0.5):
@@ -59,6 +76,10 @@ def inference_on_image(args):
 
 def save_results(results):
     print(results[0].boxes)
+    for result in results:
+        for box in result.boxes:
+            box.xyxy[0][0]
+
     pass
 
 def inference_on_video(args):
@@ -104,6 +125,8 @@ if __name__ == "__main__":
     parser.add_argument("--image", action="store_true", required=False, help="Image inference mode")
     parser.add_argument("--video", action="store_true", required=False)
     parser.add_argument("--show", required=False, type=bool, default=True, help="Show result on pop-up window")
+    parser.add_argument("--device", type=str, required=False, help="Device use (cpu or cude)", choices=["cpu", "cuda"],
+                        default="cpu")
 
     args = parser.parse_args()
 
